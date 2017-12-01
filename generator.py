@@ -27,7 +27,7 @@ TARGET_CLASS = "dbo:Monument"
 
 EXAMPLES_PER_TEMPLATE = 1
 BASE_DIR = "data/movies_300_nsp/"
-ANNOT_FILE = 'data/annotations_movies.tsv'
+ANNOT_DIR = 'data/movies_annots/'
 
 # ================================================================
 
@@ -126,7 +126,7 @@ def recheck(s):
         old = token        
     s = " ".join(s2)
     # order by desc par_open X par_close -> obd X
-    print "BEFORE: ", s
+    print "BEFORE:", s
     s = re.sub(r'order by desc par_open ([^\s]+) par_close', 'obd \\1', s)
     # order by asc par_open X par_close -> obd X (uncommon, but possible)
     s = re.sub(r'order by asc par_open ([^\s]+) par_close', 'oba \\1', s)
@@ -135,15 +135,18 @@ def recheck(s):
     for key, value in { 'days': 86400, 'hours': 3600, 'minutes': 60, 'seconds': 1 }.items():
         # e.g., filter par_open X F Y math_mult 3600 par_close -> filter_hours X F Y
         s = re.sub(r'filter par_open ([^\s]+) ([^\s]+) ([^\s]+) math_mult {} par_close'.format(value), 'filter_{} \\1 \\2 \\3'.format(key), s)
-    print "AFTER: ", s
+    print "AFTER:", s
     return s
     
 # ================================================================
 
 annot = list()
-with open(ANNOT_FILE) as f:    
-    for line in f:
-        annot.append(tuple(line[:-1].split('\t')))
+for i in range(3):
+    fname = ANNOT_DIR + 'annotations_{}.tsv'.format(i)
+    if os.path.isfile(fname):
+        with open(fname) as f:
+            for line in f:
+                annot.append(tuple(line[:-1].split('\t')))
 
 cache = dict()
 if not os.path.exists(BASE_DIR):
@@ -151,6 +154,7 @@ if not os.path.exists(BASE_DIR):
 with open(BASE_DIR + 'data_300.en', 'w') as f1:
     with open(BASE_DIR + 'data_300.sparql', 'w') as f2:
         for a in annot:
+            print a
             if a[2] in cache:
                 results = cache[a[2]]
             else:
@@ -163,7 +167,10 @@ with open(BASE_DIR + 'data_300.en', 'w') as f1:
             print "\n====> " + a[0] + " <====="
             print "ans length = {}".format(len(str(results)))
     
-            xy_array = extract(results["results"]["bindings"])
+            if a[2] == "/": # no generator query available
+                xy_array = [("", "", "", "")]
+            else:
+                xy_array = extract(results["results"]["bindings"])
             if xy_array is None:
                 print "\nNO DATA FOR '{}'".format(a[0])
                 continue
