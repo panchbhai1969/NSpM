@@ -23,3 +23,5 @@ http://dbpedia.org/property/	dbp_	0	0	0	0
 <	math_lt	1	1	1	1
 >	math_gt	1	1	1	1
 =	math_eq	1	1	1	1
+||	log_or	1	1	1	1
+&&	log_and	1	1	1	1
