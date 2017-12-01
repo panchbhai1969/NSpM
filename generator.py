@@ -7,7 +7,7 @@ Neural SPARQL Machines - Generator module
 https://w3id.org/neural-sparql-machines/soru-marx-semantics2017.html
 https://arxiv.org/abs/1708.07624
 
-Version 0.0.3
+Version 0.0.4
 
 """
 import sys
@@ -112,19 +112,31 @@ def recheck(s):
     s2 = s.split(' ')
     old = None
     for i in range(len(s2)):
-        print i, s2
+        # print i, s2
         if i == len(s2):
             break
         token = s2[i]
+        # fix problem with missing trailing ')'
         if old is not None:
             if old.startswith("dbr_") or old.startswith("dbo_"):
                 if token == "par_close":
                     s2[i-1] += ')'
                     s2 = s2[:i] + s2[i+1:]
                     i -= 1
-                    print s2
-        old = token
-    return " ".join(s2)
+        old = token        
+    s = " ".join(s2)
+    # order by desc par_open X par_close -> obd X
+    print "BEFORE: ", s
+    s = re.sub(r'order by desc par_open ([^\s]+) par_close', 'obd \\1', s)
+    # order by asc par_open X par_close -> obd X (uncommon, but possible)
+    s = re.sub(r'order by asc par_open ([^\s]+) par_close', 'oba \\1', s)
+    # order by X -> oba X
+    s = re.sub(r'order by ([^\s]+)', 'oba \\1', s)
+    for key, value in { 'days': 86400, 'hours': 3600, 'minutes': 60, 'seconds': 1 }.items():
+        # e.g., filter par_open X F Y math_mult 3600 par_close -> filter_hours X F Y
+        s = re.sub(r'filter par_open ([^\s]+) ([^\s]+) ([^\s]+) math_mult {} par_close'.format(value), 'filter_{} \\1 \\2 \\3'.format(key), s)
+    print "AFTER: ", s
+    return s
     
 # ================================================================
 
@@ -148,6 +160,7 @@ with open(BASE_DIR + 'data_300.en', 'w') as f1:
                 print q
                 results = sparql_query(q)
                 cache[a[2]] = results
+            print "\n====> " + a[0] + " <====="
             print "ans length = {}".format(len(str(results)))
     
             xy_array = extract(results["results"]["bindings"])
@@ -162,11 +175,13 @@ with open(BASE_DIR + 'data_300.en', 'w') as f1:
                     if xy[3] is not None:
                         inp = inp.replace("<B>", strip_brackets(xy[3]))
                     else:
+                        print "ERROR. Templates not added: xy[3] is none."
                         continue
                 if "<B>" in outp:
                     if xy[2] is not None:
                         outp = outp.replace("<B>", xy[2])
                     else:
+                        print "ERROR. Templates not added: xy[2] is none."
                         continue
                 outp = replacements(outp)
                 outp = recheck(outp)
