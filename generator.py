@@ -26,7 +26,7 @@ GRAPH = "http://dbpedia.org"
 TARGET_CLASS = "dbo:Monument"
 
 EXAMPLES_PER_TEMPLATE = 300
-BASE_DIR = "data/movies_300_nsp/"
+BASE_DIR = "data/movies_300_nsp3/"
 ANNOT_DIR = 'data/movies_annots/'
 
 # ================================================================
@@ -144,6 +144,8 @@ def recheck(s):
             s = re.sub(r'brack_open ([^\s]+) ([^\s]+) ([^\s]+) brack_close union brack_open ([^\s]+) ([^\s]+) ([^\s]+) brack_close', '\\1 \\2 \\3 sep_or \\6', s)
         if x[2] == x[2+3] and x[0] == x[0+3]:
             s = re.sub(r'brack_open ([^\s]+) ([^\s]+) ([^\s]+) brack_close union brack_open ([^\s]+) ([^\s]+) ([^\s]+) brack_close', '\\1 \\2 sep_or \\5 \\3', s)
+    # remove multiple spaces
+    s = re.sub(r'[\s]+', ' ', s)
     print "AFTER:", s
     return s
     
@@ -163,7 +165,9 @@ if not os.path.exists(BASE_DIR):
 with open(BASE_DIR + 'data_300.en', 'w') as f1:
     with open(BASE_DIR + 'data_300.sparql', 'w') as f2:
         for a in annot:
+            
             print a
+            print "len(a)=", len(a)
             
             if len(a) == 4:
                 
@@ -174,9 +178,9 @@ with open(BASE_DIR + 'data_300.en', 'w') as f1:
                     if "?y" in q:
                         q = q.replace(" where { ", " (str(?laby) as ?ly) where { ?y rdfs:label ?laby . FILTER(lang(?laby) = 'en') . ")
 
-                    # FIXME remove me (speeds up tests)
-                    if "limit" not in q:
-                        q += " limit " + str(EXAMPLES_PER_TEMPLATE + 5)
+                    # # FIXME remove me (speeds up tests)
+                    # if "limit" not in q:
+                    #     q += " limit " + str(EXAMPLES_PER_TEMPLATE + 5)
                     
                     print q
                     resultsA = sparql_query(q)
@@ -191,9 +195,9 @@ with open(BASE_DIR + 'data_300.en', 'w') as f1:
                     if "?y" in q:
                         q = q.replace(" where { ", " (str(?laby) as ?ly) where { ?y rdfs:label ?laby . FILTER(lang(?laby) = 'en') . ")
 
-                    # FIXME remove me (speeds up tests)
-                    if "limit" not in q:
-                        q += " limit " + str(EXAMPLES_PER_TEMPLATE + 5)
+                    # # FIXME remove me (speeds up tests)
+                    # if "limit" not in q:
+                    #     q += " limit " + str(EXAMPLES_PER_TEMPLATE + 5)
                     
                     print q
                     resultsB = sparql_query(q)
@@ -242,7 +246,6 @@ with open(BASE_DIR + 'data_300.en', 'w') as f1:
                         f1.write("{}\n".format(inp))
                         f2.write("{}\n".format(outp))
                 
-                
             if len(a) < 4:
             
                 if a[2] in cache:
@@ -252,9 +255,9 @@ with open(BASE_DIR + 'data_300.en', 'w') as f1:
                     if "?y" in q:
                         q = q.replace(" where { ", " (str(?laby) as ?ly) where { ?y rdfs:label ?laby . FILTER(lang(?laby) = 'en') . ")
 
-                    # FIXME remove me (speeds up tests)
-                    if "limit" not in q:
-                        q += " limit " + str(EXAMPLES_PER_TEMPLATE + 5)
+                    # # FIXME remove me (speeds up tests)
+                    # if "limit" not in q:
+                    #     q += " limit " + str(EXAMPLES_PER_TEMPLATE + 5)
                     
                     print q
                     results = sparql_query(q)
