@@ -26,7 +26,7 @@ GRAPH = "http://dbpedia.org"
 TARGET_CLASS = "dbo:Monument"
 
 EXAMPLES_PER_TEMPLATE = 300
-BASE_DIR = "data/movies_300_nsp3/"
+BASE_DIR = "data/movies_300_nsp4/"
 ANNOT_DIR = 'data/movies_annots/'
 
 # ================================================================
@@ -185,6 +185,7 @@ with open(BASE_DIR + 'data_300.en', 'w') as f1:
                     print q
                     resultsA = sparql_query(q)
                     cache[a[2]] = resultsA
+                    
                 print "\n====> " + a[0] + " (A) <====="
                 print "A ans length = {}".format(len(str(resultsA)))
 
@@ -213,7 +214,20 @@ with open(BASE_DIR + 'data_300.en', 'w') as f1:
                 if xy_array_B is None:
                     print "\nNO 'B' DATA FOR '{}'".format(a[0])
                     continue
-                    
+                
+                for xy in xy_array_A:
+                    f1.write("{}\n".format(strip_brackets(xy[1])))
+                    f2.write("{}\n".format(recheck(replacements(xy[0]))))
+                    if xy[2] is not None:
+                        f1.write("{}\n".format(strip_brackets(xy[3])))
+                        f2.write("{}\n".format(recheck(replacements(xy[2]))))
+                for xy in xy_array_B:
+                    f1.write("{}\n".format(strip_brackets(xy[1])))
+                    f2.write("{}\n".format(recheck(replacements(xy[0]))))
+                    if xy[2] is not None:
+                        f1.write("{}\n".format(strip_brackets(xy[3])))
+                        f2.write("{}\n".format(recheck(replacements(xy[2]))))
+                
                 print "==============", xy_array_A, xy_array_B
             
                 for i in range(len(xy_array_A)):
@@ -272,6 +286,13 @@ with open(BASE_DIR + 'data_300.en', 'w') as f1:
                 if xy_array is None:
                     print "\nNO DATA FOR '{}'".format(a[0])
                     continue
+            
+                for xy in xy_array:
+                    f1.write("{}\n".format(strip_brackets(xy[1])))
+                    f2.write("{}\n".format(recheck(replacements(xy[0]))))
+                    if xy[2] is not None:
+                        f1.write("{}\n".format(strip_brackets(xy[3])))
+                        f2.write("{}\n".format(recheck(replacements(xy[2]))))
             
                 for xy in xy_array:
                     inp = a[0].replace("<A>", strip_brackets(xy[1]))
